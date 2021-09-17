@@ -26,14 +26,13 @@ function onPlayerSays(pl) {
 	if (pl.chat.toLowerCase() == "statue help") this.triggerclient(pl, "showhelpgui");
 
     // Suggest correct command usage rip off
-    let plrCmds = "<b>Available Commands:</b> statue help";
-    let eAdminCmds = "<b>Event Admin Commands:</b> statue start, statue stop, statue reset, statue zoom"; 
-    let dAdminCmds = "<b>Development Admin Commands:</b> statue ping, statue position, statue roll, statue lock"; 
-    let offset = "   "; /* string padding offset does not work here as, the showmessage() method formats the string */
+    let plrCmds = "<b>Available commands:</b> statue help";
+    let eAdminCmds = "<b>Event Admin commands:</b> statue start, statue stop, statue reset, statue zoom"; 
+    let dAdminCmds = "<b>Development Admin commands:</b> statue ping, statue position, statue roll, statue lock"; 
     if (pl.chat.toLowerCase() == "statue") {
-        if (pl.clanname.includes("Events Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds + offset);
-        else if (pl.clanname.includes("Development Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds + " <br>" + dAdminCmds + offset);
-        else pl.showmessage(plrCmds + offset);
+        if (pl.clanname.includes("Events Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds);
+        else if (pl.clanname.includes("Development Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds + " <br>" + dAdminCmds);
+        else pl.showmessage(plrCmds);
     }
     
 	// Prevent non admin Players from accessing commands
