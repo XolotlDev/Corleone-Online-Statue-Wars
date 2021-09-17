@@ -9,7 +9,7 @@
 
 // Initialize Controller
 function onUpdated() {
-	let offset = "    ";
+	let offset = "    "; // string padding offset
 	this.x = 21.5;
 	this.y = 26;
 	this.zoom = 1.5;
@@ -25,7 +25,21 @@ function onPlayerSays(pl) {
 	// Allows the help command for non admin Players
 	if (pl.chat.toLowerCase() == "statue help") this.triggerclient(pl, "showhelpgui");
 
+    // Suggest correct command usage 
+    let plrCmds = "Available commands: statue help";
+    let eAdminCmds = "Event Admin commands: statue start, statue stop, statue reset, statue zoom"; 
+    let dAdminCmds = "Development Admin commands: statue ping, statue position, statue roll, statue lock"; 
+    let offset = " "; // String padding offset 
+    if (pl.chat.toLowerCase() == "statue") {
+        if (pl.clanname.includes("Events Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " " + eAdminCmds + offset);
+        else if (pl.clanname.includes("Development Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " " + eAdminCmds + " " + dAdminCmds + offset);
+        else pl.showmessage(plrCmds + offset);
+    }
+    
 	// Prevent non admin Players from accessing commands
+	if (pl.adminlevel > 0 && !pl.clanname.includes("Admin") && 
+	pl.chat.includes("statue") && pl.chat.length > 6) pl.showmessage("Insufficient Permissions");
+	
 	if (!pl.clanname.includes("Admin") || pl.adminlevel == 0) return;
 
 	// Construct staff commands
