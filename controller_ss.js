@@ -94,14 +94,14 @@ function onPlayerSays(pl) {
 			break;
 		case "statue test":
 			pl.chat = "";
-			
+
 			/*
 			let Survivors = [];
 			onGetInfo("statues").forEach((statue) => {
 				Survivors.push(statue.tag);
 			});
 			this.say("Survivors: " + Survivors); */
-			
+
 			this.scheduleevent(0, "lockstatues", pl, "      Statue #11", false);
 			break;
 	}
@@ -172,8 +172,8 @@ function onResetStatues(pl) {
 		statue.ani = "player_idle[1]";
 		statue.zoom = 1;
 		statue.name = "";
-		
-	  /*	let statueOwnerTag = statue.tag.substring(
+
+		/*	let statueOwnerTag = statue.tag.substring(
             statue.tag.indexOf("(") + 1, 
             statue.tag.lastIndexOf(")")
         );
@@ -182,7 +182,7 @@ function onResetStatues(pl) {
 		if (statue.tag.includes("("))  statueOwner = statue.tag.substring(0, statue.tag.length - 5 - 2);
 		else statueOwner = pl.tag;
 		
-	*/	
+	*/
 		statue.chat = "";
 
 		onGetInfo("players").forEach((plr) => {
@@ -201,49 +201,49 @@ function onZoomStatues() {
 
 // Start statue wars event
 function onClientStartStatues(pl) {
-	let startDelay = 5;
-	let maxStatues = 12;
-	let lockAmount = maxStatues - onGetInfo("players").length;
-	var _lockAmount = lockAmount;
-
 	/*
 	 Summary: Start off with locking all statues, I don't do this before all players 
 	 are on the level because its easier to update their clients then.
 	*/
 
-	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock Statues
-
+	let startDelay = 5;
+	let maxStatues = 12;
+	let roundTimer = 10;
+	let lockAmount = maxStatues - onGetInfo("players").length;
+	var _lockAmount = lockAmount;
 	let strPadding = "      ";
 	let currentStatue = strPadding + "Statue #" + _lockAmount.toString();
 
-	if (onGetInfo("players").length < maxStatues) { // Less than 12 players
+	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues
+    
+
+	if (onGetInfo("players").length < maxStatues) { // Less than 12 players, only unlock statues we need unlocked
 		onGetInfo("statues").forEach((statue) => {
-			if (statue.name == currentStatue) { // Only unlock statues we need unlocked
+			if (statue.name == currentStatue) {
 				this.scheduleevent(startDelay + 1, "lockstatues", pl, currentStatue, false); // + 1 to account for 1 second for thread sleep delay
 				_lockAmount--;
 			}
 		});
-	} else this.scheduleevent(startDelay + 1, "lockstatues", pl, null, false); // Unlock all statues 
-    
-	this.scheduleevent(0, "runtimer", startDelay, "Unlocking Statues"); // Timer
+	} else this.scheduleevent(startDelay + 1, "lockstatues", pl, null, false); // Max players unlock all statues 
 
+	this.scheduleevent(0, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer (runs first)
+	
+	this.scheduleevent(0, "rollstatues"); // Roll 
+
+	this.scheduleevent(startDelay + 1, "runtimer", roundTimer, "Locking Statues"); // Re-Lock timer
+    
+    this.scheduleevent(startDelay + 2 + roundTimer, "lockstatues", pl, null, true); // Re-Lock all statues
+    
+    
 }
 
 // Starts timer
 function onRunTimer(timer, msg) {
 	let Color;
 	for (var i = timer; i > 0; i--) {
-		switch (timer) {
-			case 5:
-				Color = "lime";
-				break;
-			case 3:
-				Color = "yellow";
-				break;
-			case 1:
-				Color = "red";
-				break;
-		}
+		if (timer < 11) Color = "lime";
+		if (timer < 6) Color = "yellow";
+		if (timer < 2) Color = "red";
 		this.showhp(msg + "(" + timer.toString() + ")", Color);
 		timer--;
 		this.sleep(1);
@@ -263,10 +263,18 @@ function onPauseStatues(pl) {
 // Returns a random statue
 function onRollStatues() {
 	let rollColor = [2.5, 2.5, 1, 2.5];
+	let unlockColor = [1,1,1,1];
+	let lockColor = [0.3,0.3,0.3,1];
 	var time = 0;
 
 	onGetInfo("statues").forEach((statue) => {
-		statue.scheduleevent(time, "rollstatue", onGetInfo("players"), 0.5, rollColor);
+		statue.scheduleevent(time, "rollstatue", onGetInfo("players"), 0.5, [1, 2.5, 2.5, 2.5]); // 0
+		
+		/*
+		statue.scheduleevent(time + 2, "rollstatue", onGetInfo("players"), 0.5, [2.5, 1, 2.5, 2.5]); // 0.5 
+		statue.scheduleevent(time + 2.5, "rollstatue", onGetInfo("players"), 0.5, [2.5, 2.5, 1, 2.5]); // 1
+		statue.scheduleevent(time + 3, "rollstatue", onGetInfo("players"), 0.5, [2.5, 2.5, 2.5, 1]); // 1.5 
+		*/
 		time++;
 	});
 }
@@ -278,7 +286,7 @@ function onLockStatues(pl, statue, bool) {
 	   in the 'statue' argument if not then every statue gets locked foreach 
 	   player on the level.
 	*/
-	
+
 	onGetInfo("statues").forEach((_statue) => {
 		onGetInfo("players").forEach((plr) => {
 			if (_statue.name == statue) {
@@ -322,7 +330,7 @@ function onGetInfo(type, npc) {
 		.filter(function(npc) {
 			return npc.name.length == 0;
 		});
-	
+
 	// Grab all named statue NPCs
 	let namedstatues = Server.searchnpcs({
 			map: this.map,
@@ -335,7 +343,7 @@ function onGetInfo(type, npc) {
 		})
 		.filter(function(npc) {
 			return npc.name.includes("Statue #");
-	});
+		});
 
 
 	// Grab all unlocked statue NPCs
@@ -397,7 +405,7 @@ function onGetInfo(type, npc) {
 		case "unlockedstatues":
 			return unlockedstatues;
 		case "namedstatues":
-		    return namedstatues;
+			return namedstatues;
 	}
 
 }
@@ -412,7 +420,7 @@ function onNameStatues(pl) {
 			if (statue.name.length < (9 + Offset.length)) {
 				statue.name = Offset + "Statue #" + (onGetInfo("statues") + Count);
 				this.scheduleevent(0, "positionstatues", pl, Offset);
-				Count++
+				Count++;
 			}
 		});
 	} else this.scheduleevent(0, "positionstatues", pl, Offset);
