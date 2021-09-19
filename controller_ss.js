@@ -1,7 +1,7 @@
 /* 
    Statue Wars, Written by XolotlDev & 0x0 
    Version 1.0, 
-   Last Date Modified by Xol: 9/15/2021 @ 1:34 PM EST
+   Last Date Modified by Xol: 9/19/2021 @ 2:00 AM EST
    Last Editor: Xol
    
    Summary: 
@@ -19,9 +19,17 @@ function onUpdated() {
 	this.debug = false; //shh
 	this.scheduleevent(0, "setstatueproperties", pl);
 	this.say("Controller Initialized!");
+	this.image = "smart-sign-tv.gif";
+}
+
+function onPlayerTouchsMe(pl) {
+	if (!pl.clanname.toString().includes("Admin") || pl.adminlevel == 0) return;
+	this.scheduleevent(0, "sendinstruction", pl, "start");
 }
 
 function onPlayerSays(pl) {
+	if (pl.chat == undefined) return;
+
 	// Allows the help command for non admin Players
 	if (pl.chat.toString().toLowerCase() == "statue help") {
 		pl.chat = "";
@@ -92,17 +100,15 @@ function onPlayerSays(pl) {
 			pl.chat = "";
 			this.scheduleevent(0, "lockstatues", pl, null, false);
 			break;
+		case "statue owner":
+			pl.chat = "";
+			onGetInfo("statues").forEach((statue) => {
+				if (statue.tag != undefined) statue.say("Owner: " + statue.tag);
+			});
+			break;
 		case "statue test":
 			pl.chat = "";
-
-			/*
-			let Survivors = [];
-			onGetInfo("statues").forEach((statue) => {
-				Survivors.push(statue.tag);
-			});
-			this.say("Survivors: " + Survivors); */
-
-			this.scheduleevent(0, "lockstatues", pl, "      Statue #11", false);
+			this.say(onGetInfo("survivors"));
 			break;
 	}
 
@@ -127,6 +133,7 @@ function onSendInstruction(pl, type, data) {
 		case "reset":
 			this.scheduleevent(0, "resetstatues", pl);
 			this.scheduleevent(0, "namestatues", pl);
+			this.scheduleevent(0, "lockstatues", pl, null, true);
 			break;
 		case "zoom":
 			this.scheduleevent(0, "zoomstatues");
@@ -143,19 +150,11 @@ function onSetStatueProperties(pl) {
 	this.scheduleevent(0, "sendinstruction", pl, "namestatues");
 }
 
-// Check for missing statues
-function onCheckStatues() {
-	onGetInfo("statues").forEach((statue) => {
-		if (statues.length != 12) {
-			// 
-		}
-	});
-}
 
 // Debugging function used for checking that all statue NPCs are operating
 function onPingStatues(pl) {
 	onGetInfo("statues").forEach((statue) => {
-		statue.scheduleevent(0, "getinstruction", "ping", "pong");
+		statue.say("pong!");
 	});
 
 	// Debugging stuff
@@ -172,20 +171,9 @@ function onResetStatues(pl) {
 		statue.ani = "player_idle[1]";
 		statue.zoom = 1;
 		statue.name = "";
-
-		/*	let statueOwnerTag = statue.tag.substring(
-            statue.tag.indexOf("(") + 1, 
-            statue.tag.lastIndexOf(")")
-        );
-        
-        let statueOwner;
-		if (statue.tag.includes("("))  statueOwner = statue.tag.substring(0, statue.tag.length - 5 - 2);
-		else statueOwner = pl.tag;
+		statue.tag = "";
 		
-	*/
-		statue.chat = "";
-
-		onGetInfo("players").forEach((plr) => {
+        onGetInfo("players").forEach((plr) => {
 			statue.scheduleevent(0, "unlockstatue", plr);
 		});
 	});
@@ -201,41 +189,94 @@ function onZoomStatues() {
 
 // Start statue wars event
 function onClientStartStatues(pl) {
-	/*
-	 Summary: Start off with locking all statues, I don't do this before all players 
-	 are on the level because its easier to update their clients then.
-	*/
-
 	let startDelay = 5;
 	let maxStatues = 12;
 	let roundTimer = 10;
-	let lockAmount = maxStatues - onGetInfo("players").length;
-	var _lockAmount = lockAmount;
-	let strPadding = "      ";
-	let currentStatue = strPadding + "Statue #" + _lockAmount.toString();
+	let lockAmount = onGetInfo("players").length - 1;
 
-	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues
-    
-
-	if (onGetInfo("players").length < maxStatues) { // Less than 12 players, only unlock statues we need unlocked
-		onGetInfo("statues").forEach((statue) => {
-			if (statue.name == currentStatue) {
-				this.scheduleevent(startDelay + 1, "lockstatues", pl, currentStatue, false); // + 1 to account for 1 second for thread sleep delay
-				_lockAmount--;
-			}
-		});
-	} else this.scheduleevent(startDelay + 1, "lockstatues", pl, null, false); // Max players unlock all statues 
-
-	this.scheduleevent(0, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer (runs first)
 	
-	this.scheduleevent(0, "rollstatues"); // Roll 
+	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues #1
+	this.scheduleevent(1, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer #2
 
-	this.scheduleevent(startDelay + 1, "runtimer", roundTimer, "Locking Statues"); // Re-Lock timer
-    
-    this.scheduleevent(startDelay + 2 + roundTimer, "lockstatues", pl, null, true); // Re-Lock all statues
-    
-    
+	// timeout 5 seconds
+
+	// Decide if lock all or specific amount #3
+	if (onGetInfo("players").length <= maxStatues) this.scheduleevent(startDelay + 1.5, "unlockstatues", pl, lockAmount);
+	else this.scheduleevent(startDelay + 1.5, "lockstatues", pl, null, false); // Max players unlock all statues 
+
+	// timeout 7 seconds
+
+	// this.scheduleevent(0, "rollstatues"); // Roll 
+
+	this.scheduleevent(startDelay + 2.5, "runtimer", roundTimer, "Locking Statues"); // Re-Lock timer
+
+	this.scheduleevent(startDelay + 3.5 + roundTimer, "lockstatues", pl, null, true); // Re-Lock all 
+
+	this.scheduleevent(startDelay + 4.5 + roundTimer, "checkstatues", pl); // Check winners
 }
+
+function onCheckStatues(pl){
+	let winningStr = "o.o";
+	let losingStr = ":_(";
+
+	onGetInfo("survivors").forEach((sur) => { // Winning Conditions
+	    sur.say(winningStr);
+	    sur.setmap(sur.map.name, sur.map.name, 21.5, 26);
+	});
+
+	this.sleep(2.5);
+
+	onGetInfo("players").forEach(plr => { // Losing Conditions
+		if (plr.chat != winningStr) {
+			plr.say(losingStr);
+			plr.unstick();
+			plr.showmessage("You have been eliminated from <b>Statue Wars</b>!");
+		}
+	});
+	
+	let auto = true;	
+	while (auto && onGetInfo("players").length >= 1) {
+	    this.scheduleevent(0, "startstatues", pl); // Re-Lock timer
+		if (onGetInfo("players").length == 1 || !auto) {
+			auto = false;
+			this.showhp("Auto Mode Disabled!", "cyan");
+			break;
+		}
+	}
+}
+
+//	this.scheduleevent(0, "startroundsystem", onGetInfo("players").length, true);
+/* function onStartRoundSystem(playerCount, auto) { // int for starting players
+
+	if (onGetInfo("survivors").length >= 12) statueCount = 12; // If we have 12 or more players then unlock all statues
+	else statueCount = onGetInfo("players").length; // If we dont then tha starting statue should be our player count.
+
+
+	let roundDelay = 10;
+	let startDelay = 7;
+    this.say(onGetInfo("survivors").length);
+
+	while (onGetInfo("players").length > 1 && auto) {
+	    this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues
+	    
+	    this.scheduleevent(0, "runtimer", startDelay, "Unlocking Statues"); // Announce round starting
+	    
+	    this.scheduleevent(startDelay + 1, "runtimer", roundDelay, "Locking Statues"); // Announce locking statues
+	    	
+        this.scheduleevent(startDelay + 1, "lockstatues", pl, null, true); // Lock the statues
+        
+	
+
+
+		statueCount -= 1; // Remove a statue for the next round
+		// loop restarts to continue round
+		
+		if (onGetInfo("survivors") == 1 || onGetInfo("players") == 0) {
+		    this.showhp("Round Ended!", "cyan");
+		    yield; 
+		}
+	}
+}*/
 
 // Starts timer
 function onRunTimer(timer, msg) {
@@ -250,31 +291,15 @@ function onRunTimer(timer, msg) {
 	}
 }
 
-// Stop statue wars event
-function onStopStatues(pl) {
-
-}
-
-// Pauses statue wars event
-function onPauseStatues(pl) {
-
-}
-
 // Returns a random statue
 function onRollStatues() {
 	let rollColor = [2.5, 2.5, 1, 2.5];
-	let unlockColor = [1,1,1,1];
-	let lockColor = [0.3,0.3,0.3,1];
+	let unlockColor = [1, 1, 1, 1];
+	let lockColor = [0.3, 0.3, 0.3, 1];
 	var time = 0;
 
 	onGetInfo("statues").forEach((statue) => {
 		statue.scheduleevent(time, "rollstatue", onGetInfo("players"), 0.5, [1, 2.5, 2.5, 2.5]); // 0
-		
-		/*
-		statue.scheduleevent(time + 2, "rollstatue", onGetInfo("players"), 0.5, [2.5, 1, 2.5, 2.5]); // 0.5 
-		statue.scheduleevent(time + 2.5, "rollstatue", onGetInfo("players"), 0.5, [2.5, 2.5, 1, 2.5]); // 1
-		statue.scheduleevent(time + 3, "rollstatue", onGetInfo("players"), 0.5, [2.5, 2.5, 2.5, 1]); // 1.5 
-		*/
 		time++;
 	});
 }
@@ -290,16 +315,34 @@ function onLockStatues(pl, statue, bool) {
 	onGetInfo("statues").forEach((_statue) => {
 		onGetInfo("players").forEach((plr) => {
 			if (_statue.name == statue) {
-				if (bool) _statue.scheduleevent(0, "lockstatue", plr);
-				else _statue.scheduleevent(0, "unlockstatue", plr);
+				if (bool) { // lock specified statue
+					_statue.scheduleevent(0, "lockstatue", plr);
+					_statue.chat = "🔒";
+				} else { // unlock specified statue
+					_statue.scheduleevent(0, "unlockstatue", plr);
+					_statue.chat = "🔓";
+				}
 			} else if (statue == "" || statue == null) {
-				if (bool) _statue.scheduleevent(0, "lockstatue", plr);
-				else _statue.scheduleevent(0, "unlockstatue", plr);
+				if (bool) { // lock all statues 
+					_statue.scheduleevent(0, "lockstatue", plr);
+					_statue.chat = "🔒";
+				} else { // unlock all statues
+					_statue.scheduleevent(0, "unlockstatue", plr);
+					_statue.chat = "🔓";
+				}
 			}
 		});
 	});
 }
 
+function onUnlockStatues(pl, amount) {
+	let statueArr = onGetInfo("statues");
+	onGetInfo("players").forEach((plr) => {
+		for (var i = amount; i > 0; i--) {
+			this.scheduleevent(0, "lockstatues", plr, statueArr[i].name, false);
+		}
+	});
+}
 
 // Grabs and returns specified event info
 function onGetInfo(type, npc) {
@@ -368,27 +411,14 @@ function onGetInfo(type, npc) {
 		return !plrs.clanname.toString().includes("Adm1in");
 	});
 
-	/*
-    
-	// Grab all Survivors Names and Player Accounts
 	let survivors = [];
-	npcs.forEach(npc =>{ 
-	    let chat = npc.chat.substring(1, npc.chat.length-1); //Filter out "( )"
-	    survivors.push(survivors.push(chat))
-	});
-    
-	/ Filter survivors through Player IDs
-	survivors = players.filter(function(plr){
-	    return survivors.toString().includes(plr.name)
-	});
-    
-	*/
-
-	// Grab a list of Players to kick from the event
-	let toKick = players.filter(function(plr) {
-		return !survivors.toString().includes(plr.name); // Grab every player who didn't survive
+	namedstatues.forEach(npc => {
+		if (npc.tag != undefined || npc.tag != "") survivors.push(npc.tag);
 	});
 
+	survivors = survivors.filter(function(survivor, pos) {
+		return survivors.indexOf(survivor) == pos;
+	});
 
 	// Debugging stuff
 	if (this.debug) pl.echo(this.name.toUpperCase() + ": Event -> onGetInfo(), NPC ID -> " + this.id + ", Players -> " + players + ", Survivors -> " + survivors);
