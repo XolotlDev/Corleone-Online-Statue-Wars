@@ -1,7 +1,7 @@
 /* 
    Statue Wars, Written by XolotlDev & 0x0 
    Version 1.0, 
-   Last Date Modified by Xol: 9/19/2021 @ 2:00 AM EST
+   Last Date Modified by Xol: 9/15/2021 @ 1:34 PM EST
    Last Editor: Xol
    
    Summary: 
@@ -28,8 +28,6 @@ function onPlayerTouchsMe(pl) {
 }
 
 function onPlayerSays(pl) {
-	if (pl.chat == undefined) return;
-
 	// Allows the help command for non admin Players
 	if (pl.chat.toString().toLowerCase() == "statue help") {
 		pl.chat = "";
@@ -104,6 +102,7 @@ function onPlayerSays(pl) {
 			pl.chat = "";
 			onGetInfo("statues").forEach((statue) => {
 				if (statue.tag != undefined) statue.say("Owner: " + statue.tag);
+				else statue.say("Unowned");
 			});
 			break;
 		case "statue test":
@@ -172,8 +171,8 @@ function onResetStatues(pl) {
 		statue.zoom = 1;
 		statue.name = "";
 		statue.tag = "";
-		
-        onGetInfo("players").forEach((plr) => {
+
+		onGetInfo("players").forEach((plr) => {
 			statue.scheduleevent(0, "unlockstatue", plr);
 		});
 	});
@@ -188,40 +187,47 @@ function onZoomStatues() {
 }
 
 // Start statue wars event
-function onClientStartStatues(pl) {
+function onClientStartStatues(pl, auto) {
+	if (onGetInfo("players").length <= 1) {
+		this.showhp("Not Enough Players!", "red");
+		return;
+	}
+
 	let startDelay = 5;
 	let maxStatues = 12;
 	let roundTimer = 10;
 	let lockAmount = onGetInfo("players").length - 1;
 
-	
+	if (auto == "Single Round") auto = false;
+	else auto = true;
+
 	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues #1
-	this.scheduleevent(1, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer #2
+	this.scheduleevent(0.5, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer #2
 
 	// timeout 5 seconds
 
 	// Decide if lock all or specific amount #3
-	if (onGetInfo("players").length <= maxStatues) this.scheduleevent(startDelay + 1.5, "unlockstatues", pl, lockAmount);
-	else this.scheduleevent(startDelay + 1.5, "lockstatues", pl, null, false); // Max players unlock all statues 
+	if (onGetInfo("players").length <= maxStatues) this.scheduleevent(startDelay + 1, "unlockstatues", pl, lockAmount);
+	else this.scheduleevent(startDelay + 1, "lockstatues", pl, null, false); // Max players unlock all statues 
 
 	// timeout 7 seconds
 
 	// this.scheduleevent(0, "rollstatues"); // Roll 
 
-	this.scheduleevent(startDelay + 2.5, "runtimer", roundTimer, "Locking Statues"); // Re-Lock timer
+	this.scheduleevent(startDelay + 1.5, "runtimer", roundTimer, "Locking Statues"); // Re-Lock timer
 
-	this.scheduleevent(startDelay + 3.5 + roundTimer, "lockstatues", pl, null, true); // Re-Lock all 
+	this.scheduleevent(startDelay + roundTimer + 3, "lockstatues", pl, null, true); // Re-Lock all 
 
-	this.scheduleevent(startDelay + 4.5 + roundTimer, "checkstatues", pl); // Check winners
+	this.scheduleevent(startDelay + 4.5 + roundTimer, "checkstatues", pl, auto); // Check winners
 }
 
-function onCheckStatues(pl){
+function onCheckStatues(pl, auto) {
 	let winningStr = "o.o";
 	let losingStr = ":_(";
 
 	onGetInfo("survivors").forEach((sur) => { // Winning Conditions
-	    sur.say(winningStr);
-	    sur.setmap(sur.map.name, sur.map.name, 21.5, 26);
+		sur.say(winningStr);
+		sur.setmap(sur.map.name, sur.map.name, 21.5, 26);
 	});
 
 	this.sleep(2.5);
@@ -233,16 +239,31 @@ function onCheckStatues(pl){
 			plr.showmessage("You have been eliminated from <b>Statue Wars</b>!");
 		}
 	});
-	
-	let auto = true;	
+
+	this.sleep(0.5);
+
+	// Prep statues for next round if there will be one
+	onGetInfo("statues").forEach((statue) => {
+		if (statue.tag != "" || statue.tag != null || statue.tag != undefined) {
+			statue.hat = pl.hat;
+			statue.head = pl.head;
+			statue.body = pl.body;
+			statue.ani = "player_idle[1]";
+		}
+	});
+
+	this.sleep(2.5);
+
 	while (auto && onGetInfo("players").length >= 1) {
-	    this.scheduleevent(0, "startstatues", pl); // Re-Lock timer
+		this.scheduleevent(0, "startstatues", pl); // Re-Lock timer
 		if (onGetInfo("players").length == 1 || !auto) {
 			auto = false;
 			this.showhp("Auto Mode Disabled!", "cyan");
 			break;
 		}
 	}
+
+
 }
 
 //	this.scheduleevent(0, "startroundsystem", onGetInfo("players").length, true);
