@@ -1,11 +1,20 @@
+function onUpdated()
+{
+    this.tags = ["statuewars_statue", "", 1];
+}
+
 function onPlayerTouchsMe(pl)
 {
-    let Owner = pl;
-    this.hat = pl.hat;
-    this.head = pl.head;
-    this.body = pl.body;
-    this.ani = "player_idle";
-    if (Owner != pl) this.showhp("Taken!", "yellow");
+    
+    if (this.chat == "🔓")
+    {
+        this.tags[1] = pl;
+        this.hat = pl.hat;
+        this.head = pl.head;
+        this.body = pl.body;
+        this.ani = "player_idle[1]";
+        this.showhp("Taken!", "yellow");
+    } else pl.showmessage("This statue is currently locked and cannot be claimed.");
 }
 
 function onRollStatue(plrs, delay, color) { 
@@ -23,6 +32,3 @@ function onUnlockStatue(plr){
     this.showhp("Unlocked!", "lime");
 }
 
-function onUpdateStats(pl) {
-    
-}
