@@ -1,12 +1,14 @@
+function onCreated() { this.onUpdated(); }
 function onUpdated()
 {
-    this.tags = ["statuewars_statue", "", 1];
+    this.tags = ["statuewars_statue", "", 11];
+
 }
 
 function onPlayerTouchsMe(pl)
 {
     
-    if (this.chat == "🔓")
+    if (this.chat != "🔓")
     {
         this.tags[1] = pl;
         this.hat = pl.hat;
