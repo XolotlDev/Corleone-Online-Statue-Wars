@@ -1,7 +1,7 @@
 /* 
    Statue Wars, Written by XolotlDev & 0x0 
    Version 1.0, 
-   Last Date Modified by Xol: 9/15/2021 @ 1:34 PM EST
+   Last Date Modified by Xol: 9/24/2021 @ 4:40 PM EST
    Last Editor: Xol
    
    Summary: 
@@ -9,79 +9,79 @@
 
 // Initialize Controller
 function onUpdated() {
-	let strPadding = "    "; // string padding offset
+	this.tags = ["statuewars_controller"];
 	this.x = 21.5;
 	this.y = 26;
-	this.zoom = 1.5;
 	this.drawunder = true;
 	this.nonblocking = true;
-	this.name = strPadding + "[Controller V2]";
 	this.debug = false; //shh
-	this.scheduleevent(0, "setstatueproperties", pl);
+	//this.scheduleevent(0, "setstatueproperties", pl);
 	this.say("Controller Initialized!");
-	this.image = "smart-sign-tv.gif";
+    this.image = "";
+    
 }
 
 function onPlayerTouchsMe(pl) {
-	if (!pl.clanname.toString().includes("Admin") || pl.adminlevel == 0) return;
+    if (!pl.clanname) return;
+ 	if (pl.clanname.includes("Events Admin") || pl.clanname.includes("Development Admin") &&  pl.adminlevel >= 1)
 	this.scheduleevent(0, "sendinstruction", pl, "start");
 }
 
 function onPlayerSays(pl) {
-	// Allows the help command for non admin Players
-	if (pl.chat.toString().toLowerCase() == "statue help") {
+    // Allows the help command for non admin Players
+	if (pl.chat.toLowerCase() == "statue help") {
 		pl.chat = "";
-		this.triggerclient(pl, "showhelpgui");
+		return this.triggerclient(pl, "showhelpgui");
 	}
 
 	// Suggest correct command usage rip off
 	let plrCmds = "<b>Available Commands:</b> statue help";
 	let eAdminCmds = "<b>Event Admin Commands:</b> statue start, statue stop, statue reset, statue zoom";
 	let dAdminCmds = "<b>Development Admin Commands:</b> statue ping, statue position, statue roll, statue lock";
-	if (pl.chat.toString().toLowerCase() == "statue") {
-		if (pl.clanname.toString().includes("Events Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds);
-		else if (pl.clanname.toString().includes("Development Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds + " <br>" + dAdminCmds);
+	if (pl.chat.toLowerCase() == "statue") {
+	    if (!pl.clanname) return pl.showmessage(plrCmds);
+		if (pl.clanname.includes("Events Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds);
+		else if (pl.clanname.includes("Development Admin") && pl.adminlevel > 0) pl.showmessage(plrCmds + " <br>" + eAdminCmds + " <br>" + dAdminCmds);
 		else pl.showmessage(plrCmds);
 	}
-
-	// Prevent non admin Players from accessing commands
-	if (pl.adminlevel > 0 && !pl.clanname.toString().includes("Admin") &&
+  
+    if (!pl.clanname) return;
+    
+	// Prevent non development admin Players from accessing commands
+	if (pl.adminlevel > 0 && !pl.clanname.includes("Development Admin") &&
 		pl.chat.includes("statue") && pl.chat.length > 6) pl.showmessage("Insufficient Permissions");
+		
+	if (!pl.clanname.includes("Events Admin") && !pl.clanname.includes("Development Admin") && pl.adminlevel < 1) return;
 
-	if (!pl.clanname.toString().includes("Admin") || pl.adminlevel == 0) return;
-
+   
+    
 	// Construct staff commands
-	switch (pl.chat.toString().toLowerCase()) // convert player chat to lowercase to prevent casing issues with cmds
+	switch (pl.chat.toLowerCase()) // convert player chat to lowercase to prevent casing issues with cmds
 	{
 		case "statue start": // Brings up the client side GUI for the admin Player
 			pl.chat = "";
-			this.scheduleevent(0, "sendinstruction", pl, "start");
-			break;
+			return this.scheduleevent(0.1, "sendinstruction", pl, "start");
 		case "statue reset": // Resets statue properties to default
 			pl.chat = "";
-			this.scheduleevent(0, "sendinstruction", pl, "reset");
-			break;
+			return this.scheduleevent(0.1, "sendinstruction", pl, "reset");
 		case "statue zoom": // Enlarges or shrinks statues by x2
 			pl.chat = "";
-			this.scheduleevent(0, "sendinstruction", pl, "zoom");
-			break;
+			return this.scheduleevent(0.1, "sendinstruction", pl, "zoom");
 		case "statue position": // Repositions statue's to their correct positions 
 			pl.chat = "";
-			this.scheduleevent(0, "sendinstruction", pl, "position");
-			break;
+			return this.scheduleevent(0.1, "sendinstruction", pl, "position");
 		case "statue survivors":
-			this.say("Survivors: " + onGetInfo("players"));
-			break;
+			return this.say("Survivors: " + onGetInfo("players"));
 	}
 
 	// Prevent non development admin Players from accessing commands
-	if (pl.adminlevel > 0 && !pl.clanname.toString().includes("Development Admin") &&
-		pl.chat.toString().includes("statue") && pl.chat.length > 6) pl.showmessage("Insufficient Permissions");
+	if (pl.adminlevel > 0 && !pl.clanname.includes("Development Admin")  &&
+		pl.chat.includes("statue") && pl.chat.length > 6) pl.showmessage("Insufficient Permissions");
 
-	if (!pl.clanname.toString().includes("Development Admin") || pl.adminlevel == 0) return;
+	if (!pl.clanname.includes("Development Admin") || pl.adminlevel == 0) return;
 
 	// Construct development staff commands
-	switch (pl.chat.toString().toLowerCase()) {
+	switch (pl.chat.toLowerCase()) {
 		case "statue ping": // Debugging command used for checking that all statue npcs are operating
 			pl.chat = "";
 			this.scheduleevent(0, "sendinstruction", pl, "ping");
@@ -100,8 +100,8 @@ function onPlayerSays(pl) {
 			break;
 		case "statue owner":
 			pl.chat = "";
-			onGetInfo("statues").forEach((statue) => {
-				if (statue.tag != undefined) statue.say("Owner: " + statue.tag);
+			onGetInfo("statues").forEach(statue => {
+				if (statue.tags[1] != undefined || statue.tags[1] == "") statue.say("Owner: " + statue.tags[1]);
 				else statue.say("Unowned");
 			});
 			break;
@@ -124,18 +124,17 @@ function onSendInstruction(pl, type, data) {
 			this.triggerclient(pl, "startevent");
 			break;
 		case "ping":
-			this.scheduleevent(0, "pingstatues", pl);
+			this.scheduleevent(0.1, "pingstatues", pl);
 			break;
 		case "position":
-			this.scheduleevent(0, "namestatues", pl);
+			this.scheduleevent(0.1, "positionstatues");
 			break;
 		case "reset":
-			this.scheduleevent(0, "resetstatues", pl);
-			this.scheduleevent(0, "namestatues", pl);
-			this.scheduleevent(0, "lockstatues", pl, null, true);
+			this.scheduleevent(0.1, "resetstatues", pl);
+			this.scheduleevent(0.1, "lockstatues", pl, null, true);
 			break;
 		case "zoom":
-			this.scheduleevent(0, "zoomstatues");
+			this.scheduleevent(0.1, "zoomstatues");
 			break;
 	}
 
@@ -144,10 +143,10 @@ function onSendInstruction(pl, type, data) {
 		pl.name + ", NPC ID -> " + this.id);
 }
 
-// Sets default statue properties
+/* Sets default statue properties
 function onSetStatueProperties(pl) {
-	this.scheduleevent(0, "sendinstruction", pl, "namestatues");
-}
+	this.scheduleevent(0.1, "sendinstruction", pl, "namestatues");
+} */
 
 
 // Debugging function used for checking that all statue NPCs are operating
@@ -163,24 +162,23 @@ function onPingStatues(pl) {
 
 // Resets statue properties to default
 function onResetStatues(pl) {
-	onGetInfo("statues").forEach((statue) => {
+	onGetInfo("statues").forEach(statue => {
 		statue.hat = pl.hat;
 		statue.head = pl.head;
 		statue.body = pl.body;
 		statue.ani = "player_idle[1]";
 		statue.zoom = 1;
 		statue.name = "";
-		statue.tag = "";
-
-		onGetInfo("players").forEach((plr) => {
-			statue.scheduleevent(0, "unlockstatue", plr);
+        statue.tags[1] = "";
+		onGetInfo("players").forEach(plr => {
+			statue.scheduleevent(0.1, "unlockstatue", plr);
 		});
 	});
 }
 
 // Enlarges or shrinks statues by x2
 function onZoomStatues() {
-	onGetInfo("statues").forEach((statue) => {
+	onGetInfo("statues").forEach(statue => {
 		if (statue.zoom == 1) statue.zoom = 2;
 		else statue.zoom = 1;
 	});
@@ -201,7 +199,11 @@ function onClientStartStatues(pl, auto) {
 	if (auto == "Single Round") auto = false;
 	else auto = true;
 
-	this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues #1
+	onGetInfo("players").forEach(plr => {
+		plr.showmessage("Welcome to statue wars, say 'statue help' for a quick description on how to play, Good Luck!");
+	});
+
+	this.scheduleevent(0.1, "lockstatues", pl, null, true); // Lock all statues #1
 	this.scheduleevent(0.5, "runtimer", startDelay, "Unlocking Statues"); // Unlock timer #2
 
 	// timeout 5 seconds
@@ -225,26 +227,29 @@ function onCheckStatues(pl, auto) {
 	let winningStr = "o.o";
 	let losingStr = ":_(";
 
-	onGetInfo("survivors").forEach((sur) => { // Winning Conditions
-		sur.say(winningStr);
-		sur.setmap(sur.map.name, sur.map.name, 21.5, 26);
+	onGetInfo("survivors").forEach(sur => { // Winning Conditions
+	    if (sur) {
+	        sur.say(winningStr);
+	    	sur.setmap(sur.map.name, sur.map.name, 21.5, 26);
+	    }
+
 	});
 
-	this.sleep(2.5);
 
+    this.sleep(0.5);
+    
 	onGetInfo("players").forEach(plr => { // Losing Conditions
 		if (plr.chat != winningStr) {
 			plr.say(losingStr);
-			plr.unstick();
+		//	plr.unstick();
 			plr.showmessage("You have been eliminated from <b>Statue Wars</b>!");
 		}
 	});
-
-	this.sleep(0.5);
-
+    
+    
 	// Prep statues for next round if there will be one
-	onGetInfo("statues").forEach((statue) => {
-		if (statue.tag != "" || statue.tag != null || statue.tag != undefined) {
+	onGetInfo("statues").forEach(statue => {
+		if (statue.tags[1] != "" || statue.tags[1] != null || statue.tags[1] != undefined) {
 			statue.hat = pl.hat;
 			statue.head = pl.head;
 			statue.body = pl.body;
@@ -255,7 +260,7 @@ function onCheckStatues(pl, auto) {
 	this.sleep(2.5);
 
 	while (auto && onGetInfo("players").length >= 1) {
-		this.scheduleevent(0, "startstatues", pl); // Re-Lock timer
+		this.scheduleevent(0.1, "startstatues", pl); // Re-Lock timer
 		if (onGetInfo("players").length == 1 || !auto) {
 			auto = false;
 			this.showhp("Auto Mode Disabled!", "cyan");
@@ -265,39 +270,6 @@ function onCheckStatues(pl, auto) {
 
 
 }
-
-//	this.scheduleevent(0, "startroundsystem", onGetInfo("players").length, true);
-/* function onStartRoundSystem(playerCount, auto) { // int for starting players
-
-	if (onGetInfo("survivors").length >= 12) statueCount = 12; // If we have 12 or more players then unlock all statues
-	else statueCount = onGetInfo("players").length; // If we dont then tha starting statue should be our player count.
-
-
-	let roundDelay = 10;
-	let startDelay = 7;
-    this.say(onGetInfo("survivors").length);
-
-	while (onGetInfo("players").length > 1 && auto) {
-	    this.scheduleevent(0, "lockstatues", pl, null, true); // Lock all statues
-	    
-	    this.scheduleevent(0, "runtimer", startDelay, "Unlocking Statues"); // Announce round starting
-	    
-	    this.scheduleevent(startDelay + 1, "runtimer", roundDelay, "Locking Statues"); // Announce locking statues
-	    	
-        this.scheduleevent(startDelay + 1, "lockstatues", pl, null, true); // Lock the statues
-        
-	
-
-
-		statueCount -= 1; // Remove a statue for the next round
-		// loop restarts to continue round
-		
-		if (onGetInfo("survivors") == 1 || onGetInfo("players") == 0) {
-		    this.showhp("Round Ended!", "cyan");
-		    yield; 
-		}
-	}
-}*/
 
 // Starts timer
 function onRunTimer(timer, msg) {
@@ -317,7 +289,7 @@ function onRollStatues() {
 	let rollColor = [2.5, 2.5, 1, 2.5];
 	let unlockColor = [1, 1, 1, 1];
 	let lockColor = [0.3, 0.3, 0.3, 1];
-	var time = 0;
+	let time = 0;
 
 	onGetInfo("statues").forEach((statue) => {
 		statue.scheduleevent(time, "rollstatue", onGetInfo("players"), 0.5, [1, 2.5, 2.5, 2.5]); // 0
@@ -333,9 +305,9 @@ function onLockStatues(pl, statue, bool) {
 	   player on the level.
 	*/
 
-	onGetInfo("statues").forEach((_statue) => {
-		onGetInfo("players").forEach((plr) => {
-			if (_statue.name == statue) {
+	onGetInfo("statues").forEach(_statue => {
+		onGetInfo("players").forEach(plr => {
+			if (_statue.tags[2] == statue) {
 				if (bool) { // lock specified statue
 					_statue.scheduleevent(0, "lockstatue", plr);
 					_statue.chat = "🔒";
@@ -358,84 +330,38 @@ function onLockStatues(pl, statue, bool) {
 
 function onUnlockStatues(pl, amount) {
 	let statueArr = onGetInfo("statues");
-	onGetInfo("players").forEach((plr) => {
+	onGetInfo("players").forEach(plr => {
 		for (var i = amount; i > 0; i--) {
-			this.scheduleevent(0, "lockstatues", plr, statueArr[i].name, false);
+			this.scheduleevent(0.1, "lockstatues", plr, statueArr[i].tags[2], false);
 		}
 	});
 }
 
 // Grabs and returns specified event info
 function onGetInfo(type, npc) {
-	// Grab all non-controller NPCs
-	let npcs = Server.searchnpcs({
-			map: this.map,
-			area: {
-				x: 4,
-				y: 11,
-				w: 300,
-				h: 300
-			}
-		})
-		.filter(function(npc) {
-			return !npc.name.includes("Controller") && !npc.name.toLowerCase().includes("test");
-		});
+    // Grab all non-controller NPCs
+    let npcs = Server.searchnpcs({tag:"statuewars_statue"});
+    
+    
+    /* Grab all unnamed statue NPCs
+    let unnamedstatues = npcs.filter(npc => {return npc.name.length == 0 && npc.tags[0] == "statuewars_statue"; });
+    */
+    
+    //Grab all named statue NPCs
+    let takenstatues = npcs.filter(npc => {return npc.tags[0] == "statuewars_statue" && npc.tags[1] != "" || npc.tags[1] != undefined;});
+          
 
-	// Grab all unnamed statue NPCs
-	let unnamedstatues = Server.searchnpcs({
-			map: this.map,
-			area: {
-				x: 4,
-				y: 11,
-				w: 300,
-				h: 300
-			}
-		})
-		.filter(function(npc) {
-			return npc.name.length == 0;
-		});
+    /* Grab all unlocked statue NPCs
+    let unlockedstatues = npcs.filter(npc => {return npc.tags[1] = "" || npc.tags[31] != undefined; });
+    */
 
-	// Grab all named statue NPCs
-	let namedstatues = Server.searchnpcs({
-			map: this.map,
-			area: {
-				x: 4,
-				y: 11,
-				w: 300,
-				h: 300
-			}
-		})
-		.filter(function(npc) {
-			return npc.name.includes("Statue #");
-		});
+    // Grab all Players and their IDs
+    let players = Server.searchPlayers({map: this.map }).filter(function(plrs) {
+        return !plrs.clanname && !plrs.clanname.includes("Admin");
+    });
 
-
-	// Grab all unlocked statue NPCs
-	let unlockedstatues = Server.searchnpcs({
-			map: this.map,
-			area: {
-				x: 4,
-				y: 11,
-				w: 300,
-				h: 300
-			}
-		})
-		.filter(function(npc) {
-			return npc.name.includes("Statue");
-			// ill think of another condition later
-		});
-
-	// Grab all Players and their IDs
-	let players = Server.searchPlayers({
-		map: this.map
-	}).filter(function(plrs) {
-		return !plrs.clanname.toString().includes("Adm1in");
-	});
-
-	let survivors = [];
-	namedstatues.forEach(npc => {
-		if (npc.tag != undefined || npc.tag != "") survivors.push(npc.tag);
-	});
+    let survivors = [];
+    takenstatues.forEach(npc => { if (npc.tags[1] != undefined || npc.tags[1] != "") survivors.push(npc.tags[1]); });
 
 	survivors = survivors.filter(function(survivor, pos) {
 		return survivors.indexOf(survivor) == pos;
@@ -451,95 +377,75 @@ function onGetInfo(type, npc) {
 			return players;
 		case "survivors":
 			return survivors;
-		case "unnamedstatues":
+		/*case "unnamedstatues":
 			return unnamedstatues;
-		case "unlockedstatues":
-			return unlockedstatues;
 		case "namedstatues":
-			return namedstatues;
+			return namedstatues; */
 	}
 
 }
 
-// Names statue NPCs based on count
-function onNameStatues(pl) {
-	let Offset = "      ";
-	let Count = 1;
-
-	if (onGetInfo("unnamedstatues").length > 0) {
-		onGetInfo("unnamedstatues").forEach((statue) => {
-			if (statue.name.length < (9 + Offset.length)) {
-				statue.name = Offset + "Statue #" + (onGetInfo("statues") + Count);
-				this.scheduleevent(0, "positionstatues", pl, Offset);
-				Count++;
-			}
-		});
-	} else this.scheduleevent(0, "positionstatues", pl, Offset);
-
-
-}
-
 // Positions statue NPCs based on name
-function onPositionStatues(pl, Offset) {
-	let Prefix = Offset + "Statue #";
-	onGetInfo("statues").forEach((statue) => {
-		switch (statue.name) {
-			case Prefix + "1":
+function onPositionStatues() {
+    
+	onGetInfo("statues").forEach(statue => {
+		switch (statue.tags[2]) {
+			case 1:
 				statue.x = 19.25;
 				statue.y = 17.5;
 				statue.dir = 2;
 				break;
-			case Prefix + "2":
+			case 2:
 				statue.x = 23.75;
 				statue.y = 17.5;
 				statue.dir = 2;
 				break;
-			case Prefix + "3":
+			case 3:
 				statue.x = 28.25;
 				statue.y = 20;
 				statue.dir = 2;
 				break;
-			case Prefix + "4":
+			case 4:
 				statue.x = 30.80;
 				statue.y = 23.5;
 				statue.dir = 1;
 				break;
-			case Prefix + "5":
+			case 5:
 				statue.x = 30.75;
 				statue.y = 28;
 				statue.dir = 1;
 				break;
-			case Prefix + "6":
+			case 6:
 				statue.x = 28.30;
 				statue.y = 31.55;
 				statue.dir = 0;
 				break;
-			case Prefix + "7":
+			case 7:
 				statue.x = 23.75;
 				statue.y = 34;
 				statue.dir = 0;
 				break;
-			case Prefix + "8":
+			case 8:
 				statue.x = 19.25;
 				statue.y = 34;
 				statue.dir = 0;
 				break;
-			case Prefix + "9":
+			case 9:
 				statue.x = 14.75;
 				statue.y = 31.55;
 				statue.dir = 0;
 				break;
-			case Prefix + "10":
+			case 10:
 				statue.x = 12.25;
 				statue.y = 28;
 				statue.dir = 3;
 				break;
-			case Prefix + "11":
+			case 11:
 				statue.x = 12.25;
 				statue.y = 23.5;
 				statue.dir = 3;
 				break;
-			case Prefix + "12":
+			case 12:
 				statue.x = 14.75;
 				statue.y = 20;
 				statue.dir = 2;
@@ -547,3 +453,21 @@ function onPositionStatues(pl, Offset) {
 		}
 	});
 }
+
+/* Names statue NPCs based on count
+function onNameStatues(pl) {
+	let strPadding = "    ";
+	let Count = 1;
+
+	if (onGetInfo("unnamedstatues").length > 0) {
+		onGetInfo("unnamedstatues").forEach((statue) => {
+			if (statue.name.length < (9 + strPadding.length) && statue.tags[0] == "statuewars_statue") {
+				statue.name = strPadding + "Statue #" + (onGetInfo("statues").length + Count);
+				this.scheduleevent(0.1, "positionstatues", pl, strPadding);
+				Count++;
+			}
+		});
+	} else this.scheduleevent(0.1, "positionstatues", pl, strPadding);
+
+
+} */
