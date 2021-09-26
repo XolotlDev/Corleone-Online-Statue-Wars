@@ -414,12 +414,12 @@ function onPositionStatues() {
 				break;
 			case 4:
 				statue.x = 30.80;
-				statue.y = 23.5;
+				statue.y = 23.7;
 				statue.dir = 1;
 				break;
 			case 5:
 				statue.x = 30.75;
-				statue.y = 28;
+				statue.y = 28.2;
 				statue.dir = 1;
 				break;
 			case 6:
@@ -444,12 +444,12 @@ function onPositionStatues() {
 				break;
 			case 10:
 				statue.x = 12.25;
-				statue.y = 28;
+				statue.y = 28.2;
 				statue.dir = 3;
 				break;
 			case 11:
 				statue.x = 12.25;
-				statue.y = 23.5;
+				statue.y = 23.7;
 				statue.dir = 3;
 				break;
 			case 12:
