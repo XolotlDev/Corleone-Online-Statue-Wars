@@ -399,17 +399,17 @@ function onPositionStatues() {
 		switch (statue.tags[2]) {
 			case 1:
 				statue.x = 19.25;
-				statue.y = 17.6;
+				statue.y = 17.8;
 				statue.dir = 2;
 				break;
 			case 2:
 				statue.x = 23.75;
-				statue.y = 17.6;
+				statue.y = 17.8;
 				statue.dir = 2;
 				break;
 			case 3:
 				statue.x = 28.25;
-				statue.y = 20.1;
+				statue.y = 20.3;
 				statue.dir = 2;
 				break;
 			case 4:
@@ -424,22 +424,22 @@ function onPositionStatues() {
 				break;
 			case 6:
 				statue.x = 28.30;
-				statue.y = 31.55;
+				statue.y = 31.7;
 				statue.dir = 0;
 				break;
 			case 7:
 				statue.x = 23.75;
-				statue.y = 34;
+				statue.y = 34.2;
 				statue.dir = 0;
 				break;
 			case 8:
 				statue.x = 19.25;
-				statue.y = 34;
+				statue.y = 34.2;
 				statue.dir = 0;
 				break;
 			case 9:
 				statue.x = 14.75;
-				statue.y = 31.55;
+				statue.y = 31.7;
 				statue.dir = 0;
 				break;
 			case 10:
@@ -454,7 +454,7 @@ function onPositionStatues() {
 				break;
 			case 12:
 				statue.x = 14.75;
-				statue.y = 20.1;
+				statue.y = 20.3;
 				statue.dir = 2;
 				break;
 		}
