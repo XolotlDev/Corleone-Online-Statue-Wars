@@ -3,8 +3,6 @@
    Version 1.0, 
    Last Date Modified by Xol: 9/24/2021 @ 4:40 PM EST
    Last Editor: Xol
-   
-   Summary: 
 */
 
 // Initialize Controller
