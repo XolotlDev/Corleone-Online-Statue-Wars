@@ -19,9 +19,10 @@ function onUpdated() {
 	this.debug = false; //shh
 	//this.scheduleevent(0, "setstatueproperties", pl);
 	this.say("Controller Initialized!");
-    this.image = "bbuilder_smartscreen.gif";
-    this.zoom = 2.5;
-    this.scheduleevent(0.1, "sendinstruction", "", "position");
+   	this.image = "bbuilder_smartscreen.gif";
+    	this.zoom = 2.5;
+    	this.scheduleevent(0.1, "sendinstruction", "", "position");
+	this.scheduleevent(0.5, "sendinstruction", pl, "reset");
 }
 
 function onPlayerTouchsMe(pl) {
@@ -237,7 +238,7 @@ function onCheckStatues(pl, auto) {
         }
 	});
 
-    this.scheduleevent(1, "roundend", pl, auto, winningStr, losingStr);
+    this.scheduleevent(0.45, "roundend", pl, auto, winningStr, losingStr);
 }
 
 function onRoundEnd(pl, auto, winningStr, losingStr) {
@@ -336,11 +337,10 @@ function onLockStatues(pl, statue, bool) {
 }
 
 function onUnlockStatues(pl, amount) {
-    this.echo("got :" + amount);
 	const statueArr = onGetInfo("statues");
 	onGetInfo("players").forEach(plr => {
 		for (var i = amount; i > 0; i--) {
-			this.scheduleevent(0, "lockstatues", plr, statueArr[i].tags[2], false);
+			this.scheduleevent(0.25, "lockstatues", plr, statueArr[i].tags[2], false);
 		}
 	});
 }
